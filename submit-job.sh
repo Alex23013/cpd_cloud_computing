@@ -1,6 +1,6 @@
 REGION=us-central1
-CLUSTER=cluster-a422
-BUCKET=dataproc-76399b63-8b38-4f0a-b831-6e680daa45e8-us-central1
+CLUSTER=cluster-f32d
+BUCKET=dataproc-ed3c3d29-fb10-47bb-aca7-dcc358c68973-us-central1
 
 helpFunction()
 {
@@ -36,4 +36,4 @@ gcloud dataproc jobs submit pyspark $parameterF --region=$REGION --cluster=$CLUS
 echo ""
 echo "> Downloading output directory from REMOTE storage to LOCAL storage..."
 echo ""
-gsutil -m cp -r gs://$BUCKET/output ./storage/$BUCKET/
+gsutil -m cp -r gs://$BUCKET/output/* ./storage/output
