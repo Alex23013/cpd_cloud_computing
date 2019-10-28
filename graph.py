@@ -13,8 +13,8 @@ class Cell:
     self.dir = -1
   
   def printCell2d(self):
-    print "(",self.pos[0],",",self.pos[1],")"
-#   for i in range(len(self.pos)):
+    print "(",self.pos[0],",",self.pos[1],")",
+#   for i in xrange(len(self.pos)):
 #     print self.pos[i]
   def printCell3d(self):
     print "(",self.pos[0],",",self.pos[1],",",self.pos[2],")"
@@ -36,22 +36,103 @@ class Cell:
 #    other.printCell2d()
     return round(math.sqrt((float(self.pos[0])-float(other.pos[0]))**2 + (float(self.pos[1])-float(other.pos[1]))**2),1)
   
+class Rectangle:
+  def __init__(self, start, end):
+    self.start = start
+    self.end = end
+    self.tiles = 0
+    self.homogeneus = False
+    self.dir = -1
+  
+  def print_rdims(self):
+    print " s:",
+    self.start.printCell2d()
+    print " e:",
+    self.end.printCell2d()
+  
+  def set_features(self, tiles, homogeneus, dir):
+    self.tiles = tiles
+    self.homogeneus = homogeneus
+    self.dir = dir
+
+  def print_comp(self):
+    print "\n",
+    self.print_rdims()
+    print "tiles:",self.tiles, "h:",self.homogeneus, "dir:",self.dir,
+
 
 class Grid:
   def __init__(self, dims):
     self.dims = dims
-    self.mGrid=[[Cell([row,column]) for column in range(dims[0])]  
-                      for row in range(dims[1])] 
-    
+    self.mGrid=[[Cell([row,column]) for column in xrange(dims[0])]  
+                      for row in xrange(dims[1])] 
+
+  def initial_rectangles(self, start):
+    rects = []  
+    if start.pos[1]+1 < self.dims[1]:
+      rects.append(Rectangle(self.mGrid[start.pos[0]][start.pos[1]+1], self.mGrid[start.pos[0]][self.dims[1]-1])) # right
+      if start.pos[0]+1 < self.dims[0]:    
+        rects.append(Rectangle(self.mGrid[start.pos[0]+1][start.pos[1]+1], self.mGrid[self.dims[0]-1][self.dims[1]-1])) # right-down  
+      if start.pos[0]-1 >= 0:
+        rects.append(Rectangle(self.mGrid[0][start.pos[1]+1], self.mGrid[start.pos[0]-1][self.dims[1]-1])) # right-up
+    if start.pos[0]+1 < self.dims[0]:
+      rects.append(Rectangle(self.mGrid[start.pos[0]+1][start.pos[1]], self.mGrid[self.dims[0]-1][start.pos[1]])) # down
+      if start.pos[1]-1 >= 0:
+        rects.append(Rectangle(self.mGrid[start.pos[0]+1][0], self.mGrid[self.dims[0]-1][start.pos[1]-1])) # left-down  
+    if start.pos[1]-1 >= 0:
+      rects.append(Rectangle(self.mGrid[start.pos[0]][0], self.mGrid[start.pos[0]][start.pos[1]-1])) # left
+    if start.pos[0]-1 >= 0:    
+      rects.append(Rectangle(self.mGrid[0][start.pos[1]], self.mGrid[start.pos[0]-1][start.pos[1]])) # up
+      if start.pos[1]-1 >= 0:
+       rects.append(Rectangle(self.mGrid[0][0], self.mGrid[start.pos[0]-1][start.pos[1]-1])) # left-up
+    return rects
+
+  def process_rect(self, rect):
+    homogeneus = True
+    dir = rect.start.dir
+    tiles = 0
+#    rect.print_rdims()
+    for i in xrange(rect.start.pos[0], rect.end.pos[0]+1):
+      for j in xrange(rect.start.pos[1], rect.end.pos[1]+1):
+        current = self.mGrid[i][j]
+#        print "current",current.pos
+        if current.dir != dir:
+          homogeneus = False
+          dir = -1
+        if not current.isObstacle():
+          tiles = tiles+1
+    return tiles, homogeneus, dir
+  
+  def left_homogenize(self, rect):
+    homogeneus = True
+    split = rect.start.pos[1]
+    while homogeneus and split < rect.end.pos[1]:
+      n_split = self.mGrid[rect.end.pos[0]][split]
+      p_rect = Rectangle(rect.start,n_split)
+      t,h,dir = self.process_rect(p_rect)
+#      print p_rect.print_comp()
+      split = split +1
+    return t, split
+
+  def homogenize(self, rect):
+    new_rects = []
+    tiles = 0
+    t1, split = self.left_homogenize(rect)
+    print "left_h:", t1,"-",split,
+    #TODO: tranformar con el split el rect en 2 rects
+    new_rects.append (Rectangle(self.mGrid[0][0],self.mGrid[0][1],)) #Prueba
+    new_rects.append (Rectangle(self.mGrid[0][1],self.mGrid[1][1],)) #Prueba
+    return new_rects
+
   def printGrid(self):
-    for  i in range (len(self.mGrid)):
-      for  j in range (len(self.mGrid[i])):
+    for  i in xrange (len(self.mGrid)):
+      for  j in xrange (len(self.mGrid[i])):
         print self.mGrid[i][j].dir,
       print "\n",
   
   def get_neightbours(self,start):
     n = []   
-    if start.pos[1]+1 < self.dims[1]: # derecha
+    if start.pos[1]+1 < self.dims[1]: # right
       var1 = self.mGrid[start.pos[0]][start.pos[1]+1]      
       if not var1.isObstacle():
         n.append(var1)
@@ -84,7 +165,7 @@ class Grid:
           if not var8.isObstacle():
             n.append(var8)
 #    print "neightbours of "+str(start.pos[0])+","+str(start.pos[1])
-#    for i in range(len(n)):
+#    for i in xrange(len(n)):
 #      print n[i].pos
     return n
 
@@ -136,7 +217,7 @@ class Grid:
       current.setAsVisited()
       n = self.get_neightbours(current)
 #      print "type(n)",type(n)
-      for i in range( len(n)):
+      for i in xrange( len(n)):
         if n[i].visited == False:
           newd = current.weight + current.Edistance(n[i])
 #          print n[i].pos," newd ",newd, "n[i].weight ", n[i].weight
@@ -145,9 +226,24 @@ class Grid:
             if current != start:
               n[i].dir = current.dir
             heapq.heappush(heap,(newd,n[i]))
-
-    
-    print "len(neighbours): ",len(start.neighbours)
+  
+  def compress(self, start):  
+    frects = []
+    irects = self.initial_rectangles(start)
+    print "initial rects:",len(irects)
+    for r in xrange(len(irects)):
+      t,h,d = self.process_rect(irects[r])
+      irects[r].set_features(t,h,d)
+#      irects[r].print_comp()
+#    print"\n"
+    for r in xrange(len(irects)):
+      if irects[r].homogeneus == True:
+        frects.append(irects[r])
+      else:
+        new_rects = self.homogenize(irects[r])
+        for r in xrange(len(new_rects)):
+          frects.append(new_rects[r])
+    return frects
 
 cel = Cell([1,2,0])
 #cel.printCell2d()
@@ -160,8 +256,12 @@ grid.mGrid[1][1].setAsObstacle()
 print "grid"
 
 #grid.printGrid()
-grid.dijkstra(grid.mGrid[2][2])
+start_cell = grid.mGrid[2][2]
+grid.dijkstra(start_cell)
 grid.printGrid()
+cpd =  grid.compress(start_cell)
+for c in cpd :
+  print c.print_comp(),
 
 #print grid.mGrid[1][1].Edistance(grid.mGrid[0][0])
 
