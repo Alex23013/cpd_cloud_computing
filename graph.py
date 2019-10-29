@@ -181,8 +181,8 @@ class Grid:
       return Rectangle(rect.start, self.mGrid[split][rect.end.pos[1]])
 
   def homogenize(self, rect,result):
-#    print "rect before homogenize",
-#    rect.print_comp()
+    print "rect before homogenize",
+    rect.print_comp()
     t,h,d = self.process_rect(rect)
     if h == True :
       result.append(rect)
@@ -389,7 +389,25 @@ grid.mGrid[1][1].setAsObstacle()
 grid.mGrid[2][1].setAsObstacle()
 print "grid"
 
-start_cell = grid.mGrid[3][3]
+'''
+for i in range(grid.dims[0]):
+  for j in range (grid.dims[1]):
+    start_cell = grid.mGrid[i][j]
+    if not start_cell.isObstacle():
+      start_time = time()
+      grid.dijkstra(start_cell)
+      grid.compress(start_cell)
+      elapsed_time = time() - start_time
+      print("Elapsed time: %.10f seconds." % elapsed_time)
+'''
+
+print"Final Result CPD",  
+print "Length : %d" % len (grid.cpd)
+#for key, value in grid.cpd.iteritems() :
+#    print key, value
+
+
+start_cell = grid.mGrid[0][0]
 start_time = time()
 grid.dijkstra(start_cell)
 elapsed_time = time() - start_time
@@ -400,11 +418,6 @@ print "\nfinal CPD's:",
 for c in cpd :
   print c.print_comp(), 
 
-'''
-print"Final Result"  
-for key, value in grid.cpd.iteritems() :
-    print key, value
-'''
 
 #print grid.mGrid[1][1].Edistance(grid.mGrid[0][0])
 '''
