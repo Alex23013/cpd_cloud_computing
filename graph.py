@@ -181,7 +181,7 @@ class Grid:
       return Rectangle(rect.start, self.mGrid[split][rect.end.pos[1]])
 
   def homogenize(self, rect,result):
-    print "rect before homogenize",
+    print "\nrect before homogenize",
     rect.print_comp()
     t,h,d = self.process_rect(rect)
     if h == True :
@@ -195,7 +195,7 @@ class Grid:
     r1, opt1, split1 = self.left_homogenize(rect)
     if r1 != -1:
       #print "left_h:", r1.tiles, "opt:",opt
-      if r1.tiles > max_tiles:
+      if r1.tiles > maxTiles:
         maxTiles = r1.tiles
         optSplit = opt1
         split = split1
@@ -342,6 +342,8 @@ class Grid:
             heapq.heappush(heap,(newd,n[i]))
   
   def compress(self, start):  
+    print "compress for",
+    start.printCell2d()
     frects = []
     irects = self.initial_rectangles(start)
     print "initial rects:",len(irects)
@@ -385,28 +387,28 @@ cel = Cell([1,2,0])
 #print cel.pos
 
 grid = Grid([10,10])
-grid.mGrid[1][1].setAsObstacle()
-grid.mGrid[2][1].setAsObstacle()
+#grid.mGrid[2][1].setAsObstacle()
 print "grid"
 
-'''
+
 for i in range(grid.dims[0]):
   for j in range (grid.dims[1]):
-    start_cell = grid.mGrid[i][j]
+    grid1 = Grid([10,10])
+    start_cell = grid1.mGrid[i][j]
     if not start_cell.isObstacle():
       start_time = time()
-      grid.dijkstra(start_cell)
-      grid.compress(start_cell)
+      grid1.dijkstra(start_cell)
+      grid1.compress(start_cell)
       elapsed_time = time() - start_time
       print("Elapsed time: %.10f seconds." % elapsed_time)
-'''
+
 
 print"Final Result CPD",  
 print "Length : %d" % len (grid.cpd)
 #for key, value in grid.cpd.iteritems() :
 #    print key, value
 
-
+'''
 start_cell = grid.mGrid[0][0]
 start_time = time()
 grid.dijkstra(start_cell)
@@ -417,7 +419,7 @@ cpd =  grid.compress(start_cell)
 print "\nfinal CPD's:",
 for c in cpd :
   print c.print_comp(), 
-
+'''
 
 #print grid.mGrid[1][1].Edistance(grid.mGrid[0][0])
 '''
