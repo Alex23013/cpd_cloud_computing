@@ -96,7 +96,7 @@ class Grid:
       for j in xrange(rect.start.pos[1], rect.end.pos[1]+1):
         current = self.mGrid[i][j]
 #        print "current",current.pos
-        if current.dir != dir:
+        if current.dir != dir and not current.isObstacle():
           homogeneus = False
           dir = -1
         if not current.isObstacle():
@@ -106,22 +106,87 @@ class Grid:
   def left_homogenize(self, rect):
     homogeneus = True
     split = rect.start.pos[1]
-    while homogeneus and split < rect.end.pos[1]:
+    while homogeneus and split+1 <= rect.end.pos[1]:
+      split = split +1
       n_split = self.mGrid[rect.end.pos[0]][split]
       p_rect = Rectangle(rect.start,n_split)
       t,h,dir = self.process_rect(p_rect)
 #      print p_rect.print_comp()
+    r1 = Rectangle(rect.start,self.mGrid[rect.end.pos[0]][split-1])
+    t,h,d = self.process_rect(r1)
+    if h == True:
+      r1.set_features(t,h,d)
+      return r1
+    else:
+      return -1
+
+  def right_homogenize(self, rect):
+    homogeneus = True
+    split = rect.end.pos[1]
+    while homogeneus and split-1 >= rect.start.pos[1]:
+      split = split -1
+      n_split = self.mGrid[rect.start.pos[0]][split]
+      p_rect = Rectangle(n_split,rect.end)
+      t,h,dir = self.process_rect(p_rect)
+#      print p_rect.print_comp()
+    r1 = Rectangle(self.mGrid[rect.start.pos[0]][split+1],rect.end)
+    t,h,d = self.process_rect(r1)
+    if h == True:
+      r1.set_features(t,h,d)
+      return r1
+    else:
+      return -1
+
+  def top_homogenize(self,rect):
+    homogeneus = True
+    split = rect.start.pos[0]
+    while homogeneus and split+1 <= rect.end.pos[1]:
       split = split +1
-    return t, split
+      n_split = self.mGrid[split][rect.end.pos[1]]
+      p_rect = Rectangle(rect.start,n_split)
+      t,h,dir = self.process_rect(p_rect)
+#      print p_rect.print_comp()
+    r1 = Rectangle(rect.start,self.mGrid[split-1][rect.end.pos[1]])
+    t,h,d = self.process_rect(r1)
+    if h == True:
+      r1.set_features(t,h,d)
+      return r1
+    else:
+      return -1
+
+  def bottom_homogenize(self, rect):
+    homogeneus = True
+    split = rect.end.pos[0]
+    while homogeneus and split-1 >= rect.start.pos[0]:
+      split = split -1
+      n_split = self.mGrid[split][rect.start.pos[1]]
+      p_rect = Rectangle(n_split,rect.end)
+      t,h,dir = self.process_rect(p_rect)
+#      print p_rect.print_comp()
+    r1 = Rectangle(self.mGrid[split+1][rect.start.pos[0]],rect.end)
+    t,h,d = self.process_rect(r1)
+    if h == True:
+      r1.set_features(t,h,d)
+      return r1
+    else:
+      return -1
 
   def homogenize(self, rect):
-    new_rects = []
-    tiles = 0
-    t1, split = self.left_homogenize(rect)
-    print "left_h:", t1,"-",split,
-    #TODO: tranformar con el split el rect en 2 rects
-    new_rects.append (Rectangle(self.mGrid[0][0],self.mGrid[0][1],)) #Prueba
-    new_rects.append (Rectangle(self.mGrid[0][1],self.mGrid[1][1],)) #Prueba
+#    print "rect before homogenize",
+#    rect.print_comp()
+    new_rects=[]
+    r1 = self.left_homogenize(rect)
+    if r1 != -1:
+      print "left_h:", r1.tiles
+    r2 = self.top_homogenize(rect)
+    if r2 != -1:
+      print "top_h:", r2.tiles
+    r3 = self.right_homogenize(rect)
+    if r3 != -1:
+      print "right_h:", r3.tiles
+    r4 = self.bottom_homogenize(rect)
+    if r4 != -1:
+      print "bottom_h:", r4.tiles
     return new_rects
 
   def printGrid(self):
@@ -242,7 +307,8 @@ class Grid:
       else:
         new_rects = self.homogenize(irects[r])
         for r in xrange(len(new_rects)):
-          frects.append(new_rects[r])
+          print new_rects[r].print_comp(),
+          #frects.append(new_rects[r])
     return frects
 
 cel = Cell([1,2,0])
@@ -251,8 +317,9 @@ cel = Cell([1,2,0])
 #print cel.pos
 
 
-grid = Grid([5,5])
+grid = Grid([6,6])
 grid.mGrid[1][1].setAsObstacle()
+grid.mGrid[2][1].setAsObstacle()
 print "grid"
 
 #grid.printGrid()
@@ -260,6 +327,7 @@ start_cell = grid.mGrid[2][2]
 grid.dijkstra(start_cell)
 grid.printGrid()
 cpd =  grid.compress(start_cell)
+print "\nfinal CPD's:",
 for c in cpd :
   print c.print_comp(),
 
