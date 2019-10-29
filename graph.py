@@ -66,6 +66,7 @@ class Grid:
     self.dims = dims
     self.mGrid=[[Cell([row,column]) for column in xrange(dims[0])]  
                       for row in xrange(dims[1])] 
+  
 
   def initial_rectangles(self, start):
     rects = []  
@@ -311,11 +312,33 @@ class Grid:
           #frects.append(new_rects[r])
     return frects
 
+
+def readMap():
+  f = open("map.map", "r")
+  list_of_lines = f.readlines()
+  gridFromMap = Grid([len(list_of_lines), len(list_of_lines[0]) - 1])
+  print(len(gridFromMap.mGrid[0]))
+  row = 0
+  for line in list_of_lines:
+    col = 0
+    for letter in line:
+      print "\nr:",row,"c:",col,
+      if letter != '\n':
+        if letter == 'T':
+          gridFromMap.mGrid[row][col].setAsObstacle()
+        col = col + 1
+    row = row + 1
+  f.close()
+  return gridFromMap
+
+
 cel = Cell([1,2,0])
 #cel.printCell2d()
 #cel.printCell3d()
 #print cel.pos
 
+gridaaa = readMap()
+gridaaa.printGrid()
 
 grid = Grid([6,6])
 grid.mGrid[1][1].setAsObstacle()
