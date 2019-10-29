@@ -1,5 +1,5 @@
 REGION=us-central1
-CLUSTER=cluster-5cb0
+CLUSTER=cluster-9c8d
 BUCKET=dataproc-ed3c3d29-fb10-47bb-aca7-dcc358c68973-us-central1
 
 helpFunction()
@@ -32,7 +32,7 @@ gsutil -m rm -r gs://$BUCKET/output
 echo ""
 echo "> Submiting $parameterF as a job to the cluster..."
 echo ""
-gcloud dataproc jobs submit pyspark $parameterF --region=$REGION --cluster=$CLUSTER
+gcloud dataproc jobs submit pyspark $parameterF --py-files=cpd.zip --region=$REGION --cluster=$CLUSTER
 echo ""
 echo "> Downloading output directory from REMOTE storage to LOCAL storage..."
 echo ""
