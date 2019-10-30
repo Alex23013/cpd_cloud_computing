@@ -7,7 +7,6 @@ class Cell:
   def __init__(self, pos):
     self.pos = pos
     self.is_obs = False
-    self.neighbours = {}
     self.visited = False  
     self.weight = 1000#sys.maxint
     self.father = {}
@@ -25,9 +24,6 @@ class Cell:
   
   def setAsVisited(self):
     self.visited = True
-  
-  def setNeighbours(self, neighbours):
-    self.neighbours = neighbours
 
   def isObstacle(self):
     return self.is_obs
@@ -90,7 +86,9 @@ class Grid:
     return rects
 
   def process_rect(self, rect):
+    print "type_", type(rect)
     homogeneus = True
+    flag = False
     dir = rect.start.dir
     tiles = 0
 #    rect.print_rdims()
@@ -124,12 +122,17 @@ class Grid:
   def right_homogenize(self, rect):
     homogeneus = True
     split = rect.end.pos[1]
+    flag = False
     while homogeneus and split-1 >= rect.start.pos[1]:
+      flag = True
       split = split -1
       n_split = self.mGrid[rect.start.pos[0]][split]
       p_rect = Rectangle(n_split,rect.end)
       t,h,dir = self.process_rect(p_rect)
-    r1 = Rectangle(self.mGrid[rect.start.pos[0]][split+1],rect.end)
+    if flag == True:
+      r1 = Rectangle(self.mGrid[rect.start.pos[0]][split+1],rect.end)
+    else:
+      r1 = Rectangle(self.mGrid[rect.start.pos[0]][split],rect.end)
     t,h,d = self.process_rect(r1)
     if h == True:
       r1.set_features(t,h,d)
@@ -140,13 +143,16 @@ class Grid:
   def top_homogenize(self,rect):
     homogeneus = True
     split = rect.start.pos[0]
-    while homogeneus and split+1 <= rect.end.pos[1]:
+#    for split = rect.start.pos[0]; split <
+    while homogeneus and split+1 <= rect.end.pos[0]:
       split = split +1
       n_split = self.mGrid[split][rect.end.pos[1]]
       p_rect = Rectangle(rect.start,n_split)
       t,h,dir = self.process_rect(p_rect)
     r1 = Rectangle(rect.start,self.mGrid[split-1][rect.end.pos[1]])
     t,h,d = self.process_rect(r1)
+    print "topH:",
+    r1.print_comp()
     if h == True:
       r1.set_features(t,h,d)
       return r1, 3, split
@@ -156,14 +162,20 @@ class Grid:
   def bottom_homogenize(self, rect):
     homogeneus = True
     split = rect.end.pos[0]
+    flag = False
     while homogeneus and split-1 >= rect.start.pos[0]:
+      flag = True
       split = split -1
       n_split = self.mGrid[split][rect.start.pos[1]]
       p_rect = Rectangle(n_split,rect.end)
       t,h,dir = self.process_rect(p_rect)
-
-    r1 = Rectangle(self.mGrid[split+1][rect.start.pos[0]],rect.end)
+    if flag == True:
+      r1 = Rectangle(self.mGrid[split+1][rect.start.pos[0]],rect.end)
+    else:
+      r1 = Rectangle(self.mGrid[split][rect.start.pos[0]],rect.end)
     t,h,d = self.process_rect(r1)
+    print "topB:",
+    r1.print_comp()
     if h == True:
       r1.set_features(t,h,d)
       return r1, 4, split
@@ -194,7 +206,7 @@ class Grid:
     hRect = ""
     r1, opt1, split1 = self.left_homogenize(rect)
     if r1 != -1:
-      #print "left_h:", r1.tiles, "opt:",opt
+      print "left_h:", r1.tiles, "opt:",opt1
       if r1.tiles > maxTiles:
         maxTiles = r1.tiles
         optSplit = opt1
@@ -202,7 +214,8 @@ class Grid:
         hRect = r1
     r2, opt2, split2 = self.top_homogenize(rect)
     if r2 != -1:
-      #print "top_h:", r2.tiles, "opt:",opt2
+      print "top_h:", r2.tiles, "opt:",opt2
+      optSplit = 3
       if r2.tiles > maxTiles:
         maxTiles = r2.tiles
         optSplit = opt2
@@ -211,7 +224,8 @@ class Grid:
 
     r3, opt3, split3 = self.right_homogenize(rect)
     if r3 != -1:
-      #print "right_h:", r3.tiles, "opt:",opt3
+      print "right_h:", r3.tiles, "opt:",opt3
+      optSplit = 2
       if r3.tiles > maxTiles:
         maxTiles = r3.tiles
         optSplit = opt3
@@ -220,14 +234,14 @@ class Grid:
 
     r4, opt4, split4 = self.bottom_homogenize(rect)
     if r4 != -1:
-      #print "bottom_h:", r4.tiles, "opt:",opt4
+      print "bottom_h:", r4.tiles, "opt:",opt4
       if r4.tiles > maxTiles:
         maxTiles = r4.tiles
         optSplit = opt4
         split = split4   
         hRect = r4
 
-    #print "maxTile:", maxTiles, "optSplit", optSplit
+    print "maxTile:", maxTiles, "optSplit", optSplit
     compRect = self.compRect(rect, optSplit, split)
     t,h,d = self.process_rect(compRect)
     compRect.set_features(t,h,d)
@@ -243,6 +257,14 @@ class Grid:
       for  j in xrange (len(self.mGrid[i])):
         print self.mGrid[i][j].dir,
       print "\n",
+
+  def clearGrid(self):
+    for  i in xrange (len(self.mGrid)):
+      for  j in xrange (len(self.mGrid[i])):
+        self.mGrid[i][j].visited = False  
+        self.mGrid[i][j].weight = 1000#sys.maxint
+        self.mGrid[i][j].dir = -1
+
   
   def get_neightbours(self,start):
     n = []   
@@ -321,7 +343,7 @@ class Grid:
     print "init Dijkstra"
     self.initial_directions(start)
     start.weight = 0
-    self.printGrid()
+    ####self.printGrid()
     heap = []
     heapq.heappush(heap,(start.weight,start))
     while len(heap):
@@ -350,8 +372,8 @@ class Grid:
     for r in xrange(len(irects)):
       t,h,d = self.process_rect(irects[r])
       irects[r].set_features(t,h,d)
-#      irects[r].print_comp()
-#    print"\n"
+      irects[r].print_comp()
+    print"\n"
     for r in xrange(len(irects)):
       if irects[r].homogeneus == True:
         frects.append(irects[r])
@@ -363,7 +385,7 @@ class Grid:
 
 
 def readMap():
-  f = open("map.map", "r")
+  f = open("map20.map", "r")
   list_of_lines = f.readlines()
   gridFromMap = Grid([len(list_of_lines), len(list_of_lines[0]) - 1])
   print(len(gridFromMap.mGrid[0]))
@@ -385,26 +407,26 @@ cel = Cell([1,2,0])
 #cel.printCell2d()
 #cel.printCell3d()
 #print cel.pos
-
-grid = Grid([10,10])
-#grid.mGrid[2][1].setAsObstacle()
-print "grid"
-
-
-for i in range(grid.dims[0]):
-  for j in range (grid.dims[1]):
-    grid1 = Grid([10,10])
-    start_cell = grid1.mGrid[i][j]
+height = 20
+width = 20
+grid = Grid([height,width])
+print "Emptygrid"
+start_time_total = time()
+for i in xrange(height):
+  for j in xrange(width):
+    start_cell = grid.mGrid[i][j]
     if not start_cell.isObstacle():
       start_time = time()
-      grid1.dijkstra(start_cell)
-      grid1.compress(start_cell)
+      grid.dijkstra(start_cell)
+      #grid.compress(start_cell)
       elapsed_time = time() - start_time
       print("Elapsed time: %.10f seconds." % elapsed_time)
+      #grid.clearGrid()
+elapsed_time_total = time() - start_time_total
+print("Elapsed time: %.10f seconds." % elapsed_time_total)
 
-
-print"Final Result CPD",  
-print "Length : %d" % len (grid.cpd)
+#print"Final Result CPD",  
+#print "Length : %d" % len (grid.cpd)
 #for key, value in grid.cpd.iteritems() :
 #    print key, value
 
@@ -422,13 +444,20 @@ for c in cpd :
 '''
 
 #print grid.mGrid[1][1].Edistance(grid.mGrid[0][0])
-'''
+
+print "readedGrip"
 gridFromMap = readMap()
 gridFromMap.printGrid()
-start_cell = gridFromMap.mGrid[5][5]
-start_time = time()
-gridFromMap.dijkstra(start_cell)
-elapsed_time = time() - start_time
-print("Elapsed time: %.10f seconds." % elapsed_time)
-gridFromMap.printGrid() '''
+start_time_total = time()
+for i in xrange(gridFromMap.dims[0]):
+  for j in xrange(gridFromMap.dims[1]):
+    start_cell = gridFromMap.mGrid[i][j]
+    if not start_cell.isObstacle():
+      start_time = time()
+      gridFromMap.dijkstra(start_cell)
+      elapsed_time = time() - start_time
+      print("Elapsed time: %.10f seconds." % elapsed_time)
+elapsed_time_total = time() - start_time_total
+print("Elapsed time: %.10f seconds." % elapsed_time_total)
+
 
