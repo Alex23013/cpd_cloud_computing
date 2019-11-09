@@ -7,9 +7,8 @@ class Cell:
   def __init__(self, pos):
     self.pos = pos
     self.is_obs = False
-    self.neighbours = {}
     self.visited = False  
-    self.weight = sys.maxint
+    self.weight = 100000#sys.maxint
     self.father = {}
     self.dir = -1
     self.inHeap = False
@@ -26,9 +25,6 @@ class Cell:
   
   def setAsVisited(self):
     self.visited = True
-  
-  def setNeighbours(self, neighbours):
-    self.neighbours = neighbours
 
   def isObstacle(self):
     return self.is_obs
@@ -66,9 +62,9 @@ class Rectangle:
 class Grid:
   def __init__(self, dims):
     self.dims = dims
-    self.mGrid=[[Cell([row,column]) for column in xrange(dims[0])]  
+    self.mGrid =[[Cell([row,column]) for column in xrange(dims[0])]  
                       for row in xrange(dims[1])] 
-  
+    self.cpd = dict()
 
   def initial_rectangles(self, start):
     rects = []  
@@ -91,7 +87,9 @@ class Grid:
     return rects
 
   def process_rect(self, rect):
+    print "type_", type(rect)
     homogeneus = True
+    flag = False
     dir = rect.start.dir
     tiles = 0
 #    rect.print_rdims()
@@ -114,89 +112,160 @@ class Grid:
       n_split = self.mGrid[rect.end.pos[0]][split]
       p_rect = Rectangle(rect.start,n_split)
       t,h,dir = self.process_rect(p_rect)
-#      print p_rect.print_comp()
     r1 = Rectangle(rect.start,self.mGrid[rect.end.pos[0]][split-1])
     t,h,d = self.process_rect(r1)
     if h == True:
       r1.set_features(t,h,d)
-      return r1
+      return r1, 1, split
     else:
-      return -1
+      return -1, -1, -1
 
   def right_homogenize(self, rect):
     homogeneus = True
     split = rect.end.pos[1]
+    flag = False
     while homogeneus and split-1 >= rect.start.pos[1]:
+      flag = True
       split = split -1
       n_split = self.mGrid[rect.start.pos[0]][split]
       p_rect = Rectangle(n_split,rect.end)
       t,h,dir = self.process_rect(p_rect)
-#      print p_rect.print_comp()
-    r1 = Rectangle(self.mGrid[rect.start.pos[0]][split+1],rect.end)
+    if flag == True:
+      r1 = Rectangle(self.mGrid[rect.start.pos[0]][split+1],rect.end)
+    else:
+      r1 = Rectangle(self.mGrid[rect.start.pos[0]][split],rect.end)
     t,h,d = self.process_rect(r1)
     if h == True:
       r1.set_features(t,h,d)
-      return r1
+      return r1, 2, split 
     else:
-      return -1
+      return -1, -1, -1
 
   def top_homogenize(self,rect):
     homogeneus = True
     split = rect.start.pos[0]
-    while homogeneus and split+1 <= rect.end.pos[1]:
+#    for split = rect.start.pos[0]; split <
+    while homogeneus and split+1 <= rect.end.pos[0]:
       split = split +1
       n_split = self.mGrid[split][rect.end.pos[1]]
       p_rect = Rectangle(rect.start,n_split)
       t,h,dir = self.process_rect(p_rect)
-#      print p_rect.print_comp()
     r1 = Rectangle(rect.start,self.mGrid[split-1][rect.end.pos[1]])
     t,h,d = self.process_rect(r1)
+    print "topH:",
+    r1.print_comp()
     if h == True:
       r1.set_features(t,h,d)
-      return r1
+      return r1, 3, split
     else:
-      return -1
+      return -1, -1, -1
 
   def bottom_homogenize(self, rect):
     homogeneus = True
     split = rect.end.pos[0]
+    flag = False
     while homogeneus and split-1 >= rect.start.pos[0]:
+      flag = True
       split = split -1
       n_split = self.mGrid[split][rect.start.pos[1]]
       p_rect = Rectangle(n_split,rect.end)
       t,h,dir = self.process_rect(p_rect)
-#      print p_rect.print_comp()
-    r1 = Rectangle(self.mGrid[split+1][rect.start.pos[0]],rect.end)
+    if flag == True:
+      r1 = Rectangle(self.mGrid[split+1][rect.start.pos[0]],rect.end)
+    else:
+      r1 = Rectangle(self.mGrid[split][rect.start.pos[0]],rect.end)
     t,h,d = self.process_rect(r1)
+    print "topB:",
+    r1.print_comp()
     if h == True:
       r1.set_features(t,h,d)
-      return r1
+      return r1, 4, split
     else:
-      return -1
+      return -1, -1, -1
 
-  def homogenize(self, rect):
-#    print "rect before homogenize",
-#    rect.print_comp()
-    new_rects=[]
-    r1 = self.left_homogenize(rect)
+  def compRect(self, rect, opt, split):
+    if opt == 1: #left
+      return Rectangle(self.mGrid[rect.start.pos[0]][split],rect.end)
+    if opt == 2: #right
+      return Rectangle(rect.start, self.mGrid[rect.end.pos[0]][split])
+    if opt == 3: #top
+      return Rectangle(self.mGrid[split][rect.start.pos[0]],rect.end)
+    if opt == 4: #bottom
+      return Rectangle(rect.start, self.mGrid[split][rect.end.pos[1]])
+
+  def homogenize(self, rect,result):
+    print "\nrect before homogenize",
+    rect.print_comp()
+    t,h,d = self.process_rect(rect)
+    if h == True :
+      result.append(rect)
+      return
+    
+    maxTiles = 0
+    optSplit = 0
+    split = 0
+    hRect = ""
+    r1, opt1, split1 = self.left_homogenize(rect)
     if r1 != -1:
-      print "left_h:", r1.tiles
-    r2 = self.top_homogenize(rect)
+      print "left_h:", r1.tiles, "opt:",opt1
+      if r1.tiles > maxTiles:
+        maxTiles = r1.tiles
+        optSplit = opt1
+        split = split1
+        hRect = r1
+    r2, opt2, split2 = self.top_homogenize(rect)
     if r2 != -1:
-      print "top_h:", r2.tiles
-    r3 = self.right_homogenize(rect)
+      print "top_h:", r2.tiles, "opt:",opt2
+      optSplit = 3
+      if r2.tiles > maxTiles:
+        maxTiles = r2.tiles
+        optSplit = opt2
+        split = split2
+        hRect = r2
+
+    r3, opt3, split3 = self.right_homogenize(rect)
     if r3 != -1:
-      print "right_h:", r3.tiles
-    r4 = self.bottom_homogenize(rect)
+      print "right_h:", r3.tiles, "opt:",opt3
+      optSplit = 2
+      if r3.tiles > maxTiles:
+        maxTiles = r3.tiles
+        optSplit = opt3
+        split = split3
+        hRect = r3
+
+    r4, opt4, split4 = self.bottom_homogenize(rect)
     if r4 != -1:
-      print "bottom_h:", r4.tiles
-    return new_rects
+      print "bottom_h:", r4.tiles, "opt:",opt4
+      if r4.tiles > maxTiles:
+        maxTiles = r4.tiles
+        optSplit = opt4
+        split = split4   
+        hRect = r4
+
+    print "maxTile:", maxTiles, "optSplit", optSplit
+    compRect = self.compRect(rect, optSplit, split)
+    t,h,d = self.process_rect(compRect)
+    compRect.set_features(t,h,d)
+    #print "compRect: ",
+    #compRect.print_comp()
+    result.append(hRect)
+
+    self.homogenize(compRect, result)
+    #hRect.print_comp()
 
   def printGrid(self):
     for  i in xrange (len(self.mGrid)):
       for  j in xrange (len(self.mGrid[i])):
         print self.mGrid[i][j].weight,
       print "\n",
+
+  def clearGrid(self):
+    for  i in xrange (len(self.mGrid)):
+      for  j in xrange (len(self.mGrid[i])):
+        self.mGrid[i][j].visited = False  
+        self.mGrid[i][j].weight = 1000#sys.maxint
+        self.mGrid[i][j].dir = -1
+
   
   def get_neightbours(self,start):
     n = []   
@@ -308,27 +377,28 @@ class Grid:
               ###heap.sort(key = lambda x: x[0])
   
   def compress(self, start):  
+    print "compress for",
+    start.printCell2d()
     frects = []
     irects = self.initial_rectangles(start)
     print "initial rects:",len(irects)
     for r in xrange(len(irects)):
       t,h,d = self.process_rect(irects[r])
       irects[r].set_features(t,h,d)
-#      irects[r].print_comp()
-#    print"\n"
+      irects[r].print_comp()
+    print"\n"
     for r in xrange(len(irects)):
       if irects[r].homogeneus == True:
         frects.append(irects[r])
       else:
-        new_rects = self.homogenize(irects[r])
-        for r in xrange(len(new_rects)):
-          print new_rects[r].print_comp(),
-          #frects.append(new_rects[r])
+        self.homogenize(irects[r],frects)
+    id = start.pos[0]*self.dims[1]+start.pos[1]    
+    self.cpd[id]=frects
     return frects
 
 
 def readMap():
-  f = open("map.map", "r")
+  f = open("map20.map", "r")
   list_of_lines = f.readlines()
   gridFromMap = Grid([len(list_of_lines), len(list_of_lines[0]) - 1])
   # print(len(gridFromMap.mGrid[0]))
@@ -350,8 +420,23 @@ cel = Cell([1,2,0])
 #cel.printCell2d()
 #cel.printCell3d()
 #print cel.pos
-
-
+height = 20
+width = 20
+grid = Grid([height,width])
+print "Emptygrid"
+start_time_total = time()
+for i in xrange(height):
+  for j in xrange(width):
+    start_cell = grid.mGrid[i][j]
+    if not start_cell.isObstacle():
+      start_time = time()
+      grid.dijkstra(start_cell)
+      #grid.compress(start_cell)
+      elapsed_time = time() - start_time
+      print("Elapsed time: %.10f seconds." % elapsed_time)
+      #grid.clearGrid()
+elapsed_time_total = time() - start_time_total
+print("Elapsed time: %.10f seconds." % elapsed_time_total)
 
 # grid = Grid([6,6])
 # grid.mGrid[1][1].setAsObstacle()
@@ -383,4 +468,20 @@ print elapsed
 #  print c.print_comp(),
 
 #print grid.mGrid[1][1].Edistance(grid.mGrid[0][0])
+
+print "readedGrip"
+gridFromMap = readMap()
+gridFromMap.printGrid()
+start_time_total = time()
+for i in xrange(gridFromMap.dims[0]):
+  for j in xrange(gridFromMap.dims[1]):
+    start_cell = gridFromMap.mGrid[i][j]
+    if not start_cell.isObstacle():
+      start_time = time()
+      gridFromMap.dijkstra(start_cell)
+      elapsed_time = time() - start_time
+      print("Elapsed time: %.10f seconds." % elapsed_time)
+elapsed_time_total = time() - start_time_total
+print("Elapsed time: %.10f seconds." % elapsed_time_total)
+
 
