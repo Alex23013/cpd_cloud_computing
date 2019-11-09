@@ -89,7 +89,6 @@ class Grid:
   def process_rect(self, rect):
     print "type_", type(rect)
     homogeneus = True
-    flag = False
     dir = rect.start.dir
     tiles = 0
 #    rect.print_rdims()
@@ -256,7 +255,7 @@ class Grid:
   def printGrid(self):
     for  i in xrange (len(self.mGrid)):
       for  j in xrange (len(self.mGrid[i])):
-        print self.mGrid[i][j].weight,
+        print self.mGrid[i][j].dir, '\t',
       print "\n",
 
   def clearGrid(self):
@@ -387,13 +386,14 @@ class Grid:
       irects[r].set_features(t,h,d)
       irects[r].print_comp()
     print"\n"
-    for r in xrange(len(irects)):
+    '''for r in xrange(len(irects)):
       if irects[r].homogeneus == True:
         frects.append(irects[r])
       else:
         self.homogenize(irects[r],frects)
     id = start.pos[0]*self.dims[1]+start.pos[1]    
     self.cpd[id]=frects
+    '''
     return frects
 
 
@@ -416,28 +416,6 @@ def readMap():
   return gridFromMap
 
 
-cel = Cell([1,2,0])
-#cel.printCell2d()
-#cel.printCell3d()
-#print cel.pos
-height = 20
-width = 20
-grid = Grid([height,width])
-print "Emptygrid"
-start_time_total = time()
-for i in xrange(height):
-  for j in xrange(width):
-    start_cell = grid.mGrid[i][j]
-    if not start_cell.isObstacle():
-      start_time = time()
-      grid.dijkstra(start_cell)
-      #grid.compress(start_cell)
-      elapsed_time = time() - start_time
-      print("Elapsed time: %.10f seconds." % elapsed_time)
-      #grid.clearGrid()
-elapsed_time_total = time() - start_time_total
-print("Elapsed time: %.10f seconds." % elapsed_time_total)
-
 # grid = Grid([6,6])
 # grid.mGrid[1][1].setAsObstacle()
 # grid.mGrid[2][1].setAsObstacle()
@@ -456,9 +434,12 @@ print("Elapsed time: %.10f seconds." % elapsed_time_total)
 '''
 gridaaa = readMap()
 start_time = timeit.default_timer()
-gridaaa.dijkstra(gridaaa.mGrid[0][0])
+gridaaa.dijkstra(gridaaa.mGrid[5][5])
 elapsed = timeit.default_timer() - start_time
 print elapsed
+gridaaa.printGrid()
+gridaaa.compress(gridaaa.mGrid[5][5])
+
 
 # gridaaa.printGrid()
 # grid.printGrid()
@@ -469,7 +450,7 @@ print elapsed
 
 #print grid.mGrid[1][1].Edistance(grid.mGrid[0][0])
 
-print "readedGrip"
+'''print "readedGrip"
 gridFromMap = readMap()
 gridFromMap.printGrid()
 start_time_total = time()
@@ -483,5 +464,5 @@ for i in xrange(gridFromMap.dims[0]):
       print("Elapsed time: %.10f seconds." % elapsed_time)
 elapsed_time_total = time() - start_time_total
 print("Elapsed time: %.10f seconds." % elapsed_time_total)
-
+'''
 
