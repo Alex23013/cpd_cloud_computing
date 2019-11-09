@@ -50,9 +50,6 @@ class Grid:
           var8 = self.mGrid[start.pos[0]][start.pos[1]-1]
           if not var8.isObstacle():
             n.append(var8)
-#    print "neightbours of "+str(start.pos[0])+","+str(start.pos[1])
-#    for i in range(len(n)):
-#      print n[i].pos
     return n
 
   def initial_directions(self,start):
@@ -90,25 +87,26 @@ class Grid:
         var8.dir = 4
 
   def dijkstra(self,start):
+    print "init Dijkstra"
     self.initial_directions(start)
-    start.weight = 0
+    self.mGrid[start.pos[0]][start.pos[1]].weight = 0
     heap = []
     heapq.heappush(heap,(start.weight,start))
+    self.mGrid[start.pos[0]][start.pos[1]].inHeap = True
     while len(heap):
       current = heap[0][1]
-#      print "current",current
       heapq.heappop(heap)
-      current.setAsVisited()
+      self.mGrid[current.pos[0]][current.pos[1]].visited = True
       n = self.get_neightbours(current)
-#      print "type(n)",type(n)
-      for i in xrange(len(n)):
-        if n[i].visited == False:
+      for i in xrange( len(n)):
+        if self.mGrid[n[i].pos[0]][n[i].pos[1]].visited == False:
           newd = current.weight + current.Edistance(n[i])
-#          print n[i].pos," newd ",newd, "n[i].weight ", n[i].weight
           if newd <= n[i].weight:
-            n[i].weight = newd
+            self.mGrid[n[i].pos[0]][n[i].pos[1]].weight = newd
             if current != start:
-              n[i].dir = current.dir
-            heapq.heappush(heap,(newd,n[i]))
+              self.mGrid[n[i].pos[0]][n[i].pos[1]].dir = current.dir
+            if self.mGrid[n[i].pos[0]][n[i].pos[1]].inHeap == False:
+              heapq.heappush(heap,(newd,n[i]))
+              self.mGrid[n[i].pos[0]][n[i].pos[1]].inHeap = True
 
 

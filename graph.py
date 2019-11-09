@@ -1,6 +1,7 @@
 import sys
 import math
 import heapq
+import timeit
 
 class Cell:
   def __init__(self, pos):
@@ -11,6 +12,7 @@ class Cell:
     self.weight = sys.maxint
     self.father = {}
     self.dir = -1
+    self.inHeap = False
   
   def printCell2d(self):
     print "(",self.pos[0],",",self.pos[1],")",
@@ -193,7 +195,7 @@ class Grid:
   def printGrid(self):
     for  i in xrange (len(self.mGrid)):
       for  j in xrange (len(self.mGrid[i])):
-        print self.mGrid[i][j].dir,
+        print self.mGrid[i][j].weight,
       print "\n",
   
   def get_neightbours(self,start):
@@ -270,28 +272,40 @@ class Grid:
         var8.dir = 4
 
   def dijkstra(self,start):
-    print "init Dijkstra"
+    # print "init Dijkstra"
     self.initial_directions(start)
-    start.weight = 0
-    self.printGrid()
+    self.mGrid[start.pos[0]][start.pos[1]].weight = 0
+    # self.printGrid()
     heap = []
     heapq.heappush(heap,(start.weight,start))
+    ###heap.append((start.weight,start))
+    self.mGrid[start.pos[0]][start.pos[1]].inHeap = True
+    ###heap.sort(key = lambda x: x[0])
     while len(heap):
+      # print len(heap)
       current = heap[0][1]
 #      print "current",current
       heapq.heappop(heap)
-      current.setAsVisited()
+      ###heap.pop(0)
+      # current.setAsVisited()
+      self.mGrid[current.pos[0]][current.pos[1]].visited = True
       n = self.get_neightbours(current)
 #      print "type(n)",type(n)
       for i in xrange( len(n)):
-        if n[i].visited == False:
+        # print n[i].visited
+        # print self.mGrid[n[i].pos[0]][n[i].pos[1]].visited
+        if self.mGrid[n[i].pos[0]][n[i].pos[1]].visited == False:
           newd = current.weight + current.Edistance(n[i])
 #          print n[i].pos," newd ",newd, "n[i].weight ", n[i].weight
           if newd <= n[i].weight:
-            n[i].weight = newd
+            self.mGrid[n[i].pos[0]][n[i].pos[1]].weight = newd
             if current != start:
-              n[i].dir = current.dir
-            heapq.heappush(heap,(newd,n[i]))
+              self.mGrid[n[i].pos[0]][n[i].pos[1]].dir = current.dir
+            if self.mGrid[n[i].pos[0]][n[i].pos[1]].inHeap == False:
+              heapq.heappush(heap,(newd,n[i]))
+              ###heap.append((newd,n[i]))
+              self.mGrid[n[i].pos[0]][n[i].pos[1]].inHeap = True
+              ###heap.sort(key = lambda x: x[0])
   
   def compress(self, start):  
     frects = []
@@ -317,12 +331,12 @@ def readMap():
   f = open("map.map", "r")
   list_of_lines = f.readlines()
   gridFromMap = Grid([len(list_of_lines), len(list_of_lines[0]) - 1])
-  print(len(gridFromMap.mGrid[0]))
+  # print(len(gridFromMap.mGrid[0]))
   row = 0
   for line in list_of_lines:
     col = 0
     for letter in line:
-      print "\nr:",row,"c:",col,
+      # print "\nr:",row,"c:",col,
       if letter != '\n':
         if letter == 'T':
           gridFromMap.mGrid[row][col].setAsObstacle()
@@ -337,22 +351,36 @@ cel = Cell([1,2,0])
 #cel.printCell3d()
 #print cel.pos
 
-gridaaa = readMap()
-gridaaa.printGrid()
 
-grid = Grid([6,6])
-grid.mGrid[1][1].setAsObstacle()
-grid.mGrid[2][1].setAsObstacle()
-print "grid"
+
+# grid = Grid([6,6])
+# grid.mGrid[1][1].setAsObstacle()
+# grid.mGrid[2][1].setAsObstacle()
+# print "grid"
 
 #grid.printGrid()
-start_cell = grid.mGrid[2][2]
-grid.dijkstra(start_cell)
-grid.printGrid()
-cpd =  grid.compress(start_cell)
-print "\nfinal CPD's:",
-for c in cpd :
-  print c.print_comp(),
+# start_cell = grid.mGrid[2][2]
+
+'''for i in range(49):
+  for j in range(49):
+    gridaaa = readMap()
+    start_time = timeit.default_timer()
+    gridaaa.dijkstra(gridaaa.mGrid[i][j])
+    elapsed = timeit.default_timer() - start_time
+    print elapsed
+'''
+gridaaa = readMap()
+start_time = timeit.default_timer()
+gridaaa.dijkstra(gridaaa.mGrid[0][0])
+elapsed = timeit.default_timer() - start_time
+print elapsed
+
+# gridaaa.printGrid()
+# grid.printGrid()
+#cpd =  grid.compress(start_cell)
+#print "\nfinal CPD's:",
+#for c in cpd :
+#  print c.print_comp(),
 
 #print grid.mGrid[1][1].Edistance(grid.mGrid[0][0])
 

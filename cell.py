@@ -11,11 +11,11 @@ class Cell:
     self.weight = 1000
     self.father = {}
     self.dir = -1
+    self.inHeap = False
   
   def printCell2d(self):
     print "(",self.pos[0],",",self.pos[1],")"
-#   for i in range(len(self.pos)):
-#     print self.pos[i]
+
   def printCell3d(self):
     print "(",self.pos[0],",",self.pos[1],",",self.pos[2],")"
 
@@ -32,7 +32,5 @@ class Cell:
     return self.is_obs
   
   def Edistance(self, other):
-#    self.printCell2d()
-#    other.printCell2d()
     return round(math.sqrt((float(self.pos[0])-float(other.pos[0]))**2 + (float(self.pos[1])-float(other.pos[1]))**2),1)
   
