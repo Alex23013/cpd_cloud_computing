@@ -15,8 +15,7 @@ class Cell:
   
   def printCell2d(self):
     print "(",self.pos[0],",",self.pos[1],")",
-#   for i in xrange(len(self.pos)):
-#     print self.pos[i]
+
   def printCell3d(self):
     print "(",self.pos[0],",",self.pos[1],",",self.pos[2],")"
 
@@ -30,8 +29,6 @@ class Cell:
     return self.is_obs
   
   def Edistance(self, other):
-#    self.printCell2d()
-#    other.printCell2d()
     return round(math.sqrt((float(self.pos[0])-float(other.pos[0]))**2 + (float(self.pos[1])-float(other.pos[1]))**2),1)
   
 class Rectangle:
@@ -54,9 +51,8 @@ class Rectangle:
     self.dir = dir
 
   def print_comp(self):
-    print "\n",
     self.print_rdims()
-    print "tiles:",self.tiles, "h:",self.homogeneus, "dir:",self.dir,
+    print "tiles:",self.tiles, "h:",self.homogeneus, "dir:",self.dir
 
 
 class Grid:
@@ -87,19 +83,22 @@ class Grid:
     return rects
 
   def process_rect(self, rect):
-    print "type_", type(rect)
     homogeneus = True
-    dir = rect.start.dir
+    dir = -2
+    flag_dir_assigned = False
     tiles = 0
-#    rect.print_rdims()
     for i in xrange(rect.start.pos[0], rect.end.pos[0]+1):
       for j in xrange(rect.start.pos[1], rect.end.pos[1]+1):
         current = self.mGrid[i][j]
-#        print "current",current.pos
-        if current.dir != dir and not current.isObstacle():
-          homogeneus = False
-          dir = -1
         if not current.isObstacle():
+          if current.dir != dir:
+            if not flag_dir_assigned:
+              dir = current.dir
+              flag_dir_assigned = True
+            else :
+              dir = -1
+              homogeneus = False
+              return tiles, homogeneus, dir
           tiles = tiles+1
     return tiles, homogeneus, dir
   
@@ -143,7 +142,6 @@ class Grid:
   def top_homogenize(self,rect):
     homogeneus = True
     split = rect.start.pos[0]
-#    for split = rect.start.pos[0]; split <
     while homogeneus and split+1 <= rect.end.pos[0]:
       split = split +1
       n_split = self.mGrid[split][rect.end.pos[1]]
@@ -245,27 +243,16 @@ class Grid:
     compRect = self.compRect(rect, optSplit, split)
     t,h,d = self.process_rect(compRect)
     compRect.set_features(t,h,d)
-    #print "compRect: ",
-    #compRect.print_comp()
     result.append(hRect)
 
     self.homogenize(compRect, result)
-    #hRect.print_comp()
 
   def printGrid(self):
     for  i in xrange (len(self.mGrid)):
       for  j in xrange (len(self.mGrid[i])):
         print self.mGrid[i][j].dir, '\t',
       print "\n",
-
-  def clearGrid(self):
-    for  i in xrange (len(self.mGrid)):
-      for  j in xrange (len(self.mGrid[i])):
-        self.mGrid[i][j].visited = False  
-        self.mGrid[i][j].weight = 1000#sys.maxint
-        self.mGrid[i][j].dir = -1
-
-  
+ 
   def get_neightbours(self,start):
     n = []   
     if start.pos[1]+1 < self.dims[1]: # right
@@ -300,9 +287,6 @@ class Grid:
           var8 = self.mGrid[start.pos[0]][start.pos[1]-1]
           if not var8.isObstacle():
             n.append(var8)
-#    print "neightbours of "+str(start.pos[0])+","+str(start.pos[1])
-#    for i in xrange(len(n)):
-#      print n[i].pos
     return n
 
   def initial_directions(self,start):
@@ -385,7 +369,7 @@ class Grid:
       t,h,d = self.process_rect(irects[r])
       irects[r].set_features(t,h,d)
       irects[r].print_comp()
-    print"\n"
+    
     '''for r in xrange(len(irects)):
       if irects[r].homogeneus == True:
         frects.append(irects[r])
@@ -439,30 +423,3 @@ elapsed = timeit.default_timer() - start_time
 print elapsed
 gridaaa.printGrid()
 gridaaa.compress(gridaaa.mGrid[5][5])
-
-
-# gridaaa.printGrid()
-# grid.printGrid()
-#cpd =  grid.compress(start_cell)
-#print "\nfinal CPD's:",
-#for c in cpd :
-#  print c.print_comp(),
-
-#print grid.mGrid[1][1].Edistance(grid.mGrid[0][0])
-
-'''print "readedGrip"
-gridFromMap = readMap()
-gridFromMap.printGrid()
-start_time_total = time()
-for i in xrange(gridFromMap.dims[0]):
-  for j in xrange(gridFromMap.dims[1]):
-    start_cell = gridFromMap.mGrid[i][j]
-    if not start_cell.isObstacle():
-      start_time = time()
-      gridFromMap.dijkstra(start_cell)
-      elapsed_time = time() - start_time
-      print("Elapsed time: %.10f seconds." % elapsed_time)
-elapsed_time_total = time() - start_time_total
-print("Elapsed time: %.10f seconds." % elapsed_time_total)
-'''
-
