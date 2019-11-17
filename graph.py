@@ -205,7 +205,6 @@ class Grid:
     if opt == 2: #right ok
       return Rectangle(rect.start, self.mGrid[rect.end.pos[0]][split])
     if opt == 3: #top ok
-      ##print "top_split:",split,
       return Rectangle(self.mGrid[split][rect.start.pos[1]],rect.end)
     if opt == 4: #bottom
       return Rectangle(rect.start, self.mGrid[split][rect.end.pos[1]])
@@ -233,7 +232,6 @@ class Grid:
     r2, opt2, split2 = self.top_homogenize(rect)
     if r2 != -1:
       ##print "top_h:", r2.tiles, "opt:",opt2
-      #optSplit = 3
       if r2.tiles > maxTiles:
         maxTiles = r2.tiles
         optSplit = opt2
@@ -243,7 +241,6 @@ class Grid:
     r3, opt3, split3 = self.right_homogenize(rect)
     if r3 != -1:
       ##print "right_h:", r3.tiles, "opt:",opt3
-      #optSplit = 2
       if r3.tiles > maxTiles:
         maxTiles = r3.tiles
         optSplit = opt3
@@ -260,15 +257,32 @@ class Grid:
         hRect = r4
 
     ##print "maxTile:", maxTiles, "optSplit", optSplit
-    compRect = self.compRect(rect, optSplit, split)
-    t,h,d = self.process_rect(compRect)
-    ##print "hrect",
-    ##hRect.print_comp()
-    ##print "comprect",
-    ##compRect.print_comp()
-    compRect.set_features(t,h,d)
-    result.append(hRect)
-    self.homogenize(compRect, result)
+    if maxTiles == 0:
+      ##print "default_top_split"
+      split = rect.start.pos[0]
+      d1 = Rectangle(rect.start,self.mGrid[split][rect.end.pos[1]])
+      t,h,d = self.process_rect(d1)
+      d1.set_features(t,h,d)
+      d2 = Rectangle(self.mGrid[split+1][rect.start.pos[1]],rect.end)
+      t,h,d = self.process_rect(d2)
+      d2.set_features(t,h,d)
+      ##print "hrect_d1",
+      ##d1.print_comp()
+      ##print "hrect_d2",
+      ##d2.print_comp()
+      self.homogenize(d1, result)
+      self.homogenize(d2, result)
+
+    else:
+      compRect = self.compRect(rect, optSplit, split)
+      t,h,d = self.process_rect(compRect)
+      ##print "hrect",
+      ##hRect.print_comp()
+      #print "comprect",
+      ##compRect.print_comp()
+      compRect.set_features(t,h,d)
+      result.append(hRect)
+      self.homogenize(compRect, result)
 
   def printGrid(self):
     for  i in xrange (len(self.mGrid)):
@@ -387,11 +401,11 @@ class Grid:
     return id
 
   def compress(self, start):  
-    print "compress for",
-    start.printCell2d()
+    ##print "compress for",
+    ##start.printCell2d()
     frects = []
     irects = self.initial_rectangles(start)
-    print "initial rects:",len(irects),
+    ##print "initial rects:",len(irects),
     for r in xrange(len(irects)):
       t,h,d = self.process_rect(irects[r])
       if h == True:
@@ -406,8 +420,9 @@ class Grid:
     return frects
 
 
-def readMap():
-  f = open("map20.map", "r")
+def readMap(dim):
+  filename ="map"+str(dim)+".map" 
+  f = open(filename, "r")
   list_of_lines = f.readlines()
   gridFromMap = Grid([len(list_of_lines), len(list_of_lines[0]) - 1])
   # print(len(gridFromMap.mGrid[0]))
@@ -429,32 +444,35 @@ def readMap():
 # grid.mGrid[1][1].setAsObstacle()
 # grid.mGrid[2][1].setAsObstacle()
 # print "grid"
+dim = 100
 
-#grid.printGrid()
-# start_cell = grid.mGrid[2][2]
+
 start_time1 = timeit.default_timer()
-for i in range(15):
-  for j in range(15):
-    gridaaa = readMap()
-    start_time = timeit.default_timer()
+for i in range(dim):
+  for j in range(dim):
+    gridaaa = readMap(dim)
+    ##start_time = timeit.default_timer()
     gridaaa.dijkstra(gridaaa.mGrid[i][j])
     #gridaaa.printGrid()
     gridaaa.compress(gridaaa.mGrid[i][j])
-    elapsed = timeit.default_timer() - start_time
+    ##elapsed = timeit.default_timer() - start_time
     ##print elapsed
 elapsed1 = timeit.default_timer() - start_time1
 print elapsed1
+
+
 '''
-gridaaa = readMap()
+gridaaa = readMap(dim)
 start_time = timeit.default_timer()
-gridaaa.dijkstra(gridaaa.mGrid[5][5])
+gridaaa.dijkstra(gridaaa.mGrid[2][4])
 elapsed = timeit.default_timer() - start_time
 print elapsed
-##gridaaa.printGrid()
-cpd = gridaaa.compress(gridaaa.mGrid[5][5])
-#print("rects_cpd")
-#for i in cpd:
-#  i.print_comp()
+gridaaa.printGrid()
+cpd = gridaaa.compress(gridaaa.mGrid[2][4])
+print("rects_cpd")
+for i in cpd:
+  i.print_comp()
 '''
-print "keys generated CPD"
+
+print "num keys generated CPD",
 print gridaaa.cpd.keys()
