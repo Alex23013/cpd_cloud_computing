@@ -444,19 +444,21 @@ def readMap(dim):
 # grid.mGrid[1][1].setAsObstacle()
 # grid.mGrid[2][1].setAsObstacle()
 # print "grid"
-dim = 100
+dim = 20
 
 
 start_time1 = timeit.default_timer()
 for i in range(dim):
   for j in range(dim):
     gridaaa = readMap(dim)
-    ##start_time = timeit.default_timer()
+    start_time = timeit.default_timer()
     gridaaa.dijkstra(gridaaa.mGrid[i][j])
     #gridaaa.printGrid()
     gridaaa.compress(gridaaa.mGrid[i][j])
-    ##elapsed = timeit.default_timer() - start_time
-    ##print elapsed
+    id = i*gridaaa.dims[1]+j
+    print len(gridaaa.cpd[id]),
+    elapsed = timeit.default_timer() - start_time
+    print elapsed
 elapsed1 = timeit.default_timer() - start_time1
 print elapsed1
 

@@ -32,8 +32,10 @@ def buildCpd(cell):
   localGrid = sharedGrid.value
   start_time = timeit.default_timer()
   localGrid.dijkstra(localGrid.mGrid[cell.pos[0]][cell.pos[1]])
+  re = localGrid.compress(localGrid.mGrid[cell.pos[0]][cell.pos[1]])
+  id = cell.pos[0]*localGrid.dims[1]+cell.pos[1]
   elapsed = timeit.default_timer() - start_time
-  return (cell.pos[0], cell.pos[1], elapsed)
+  return (cell.pos[0], cell.pos[1], id, len(re), elapsed)
 
 rdda = sc.parallelize(grid.mGrid, 14)
 rddb = rdda.flatMap(lambda row: row)
