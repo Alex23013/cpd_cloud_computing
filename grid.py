@@ -351,8 +351,8 @@ class Grid:
         frects.append(irects[r])
         #irects[r].print_comp()
       else:  
-        self.homogenize(irects[r],frects)##REVISAR
+        self.homogenize(irects[r],frects)
     id = self.id_cell(start)
-    print "save to cpd id:", id
+    ##print "save to cpd id:", id
     self.cpd[id] = frects    
     return frects

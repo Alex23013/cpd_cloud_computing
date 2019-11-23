@@ -444,7 +444,7 @@ def readMap(dim):
 # grid.mGrid[1][1].setAsObstacle()
 # grid.mGrid[2][1].setAsObstacle()
 # print "grid"
-dim = 20
+dim = 15
 
 
 start_time1 = timeit.default_timer()
@@ -454,11 +454,15 @@ for i in range(dim):
     start_time = timeit.default_timer()
     gridaaa.dijkstra(gridaaa.mGrid[i][j])
     #gridaaa.printGrid()
-    gridaaa.compress(gridaaa.mGrid[i][j])
+    re = gridaaa.compress(gridaaa.mGrid[i][j])
     id = i*gridaaa.dims[1]+j
     print len(gridaaa.cpd[id]),
     elapsed = timeit.default_timer() - start_time
     print elapsed
+    info_rect = ""
+    for k in range(len(re)):
+      info_rect = info_rect+str(re[k].start.pos[0])+","+str(re[k].start.pos[1])+")("+str(re[k].end.pos[0])+","+str(re[k].end.pos[1])+"#"
+    print info_rect
 elapsed1 = timeit.default_timer() - start_time1
 print elapsed1
 
